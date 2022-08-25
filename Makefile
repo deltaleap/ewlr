@@ -8,7 +8,7 @@ FLAGS += -Wno-unused-variable
 FLAGS += -Werror
 FLAGS += -std=gnu11
 
-#LIBS += -lm
+LIBS += -lm
 
 SRC_DIR := src
 OBJ_DIR := obj

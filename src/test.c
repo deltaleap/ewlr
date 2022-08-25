@@ -86,6 +86,44 @@ void test_la()
     }
     printf("     -> OK!\n");
 
+    printf("\n+ test m*_eye +\n");
+
+    printf(" - test m2\n");
+    m2 eye2 = m2_eye();
+    m2 expected_eye2 = {{
+        { 1.f, 0.f },
+        { 0.f, 1.f }
+    }};
+    for_loop_r(2)
+        for_loop_c(2)
+            assert(eye2.M[r][c] == expected_eye2.M[r][c]);
+    printf("     -> OK!\n");
+
+    printf(" - test m3\n");
+    m3 eye3 = m3_eye();
+    m3 expected_eye3 = {{
+        { 1.f, 0.f, 0.f },
+        { 0.f, 1.f, 0.f },
+        { 0.f, 0.f, 1.f }
+    }};
+    for_loop_r(3)
+        for_loop_c(3)
+            assert(eye3.M[r][c] == expected_eye3.M[r][c]);
+    printf("     -> OK!\n");
+
+    printf(" - test m4\n");
+    m4 eye4 = m4_eye();
+    m4 expected_eye4 = {{
+        { 1.f, 0.f, 0.f, 0.f },
+        { 0.f, 1.f, 0.f, 0.f },
+        { 0.f, 0.f, 1.f, 0.f },
+        { 0.f, 0.f, 0.f, 1.f }
+    }};
+    for_loop_r(4)
+        for_loop_c(4)
+            assert(eye4.M[r][c] == expected_eye4.M[r][c]);
+    printf("     -> OK!\n");
+
     printf("\n+ test v*_dot +\n");
 
     printf(" - test v2\n");
@@ -159,6 +197,185 @@ void test_la()
     }};
     assert( m4_det(mnz4) - 60983.622f < 1.f );
     printf("     -> OK!\n");
+
+    printf("\n+ test m*_transpose +\n");
+    printf(" - test m2\n");
+    m2 mtr2 = {{
+        { 1.f, 3.f },
+        { 2.f, 4.f }
+    }};
+    m2 rtr2 = m2_transpose(mtr2);
+    m2 etr2 = {{
+        { 1.f, 2.f },
+        { 3.f, 4.f }
+    }};
+    for_loop_r(2)
+        for_loop_c(2)
+            assert(rtr2.M[r][c] == etr2.M[r][c]);
+    printf("     -> OK!\n");
+
+    printf(" - test m3\n");
+    m3 mtr3 = {{
+        { 1.f, 3.f, 5.f },
+        { 2.f, 4.f, 6.f },
+        { 2.f, 4.f, 6.f }
+    }};
+    m3 rtr3 = m3_transpose(mtr3);
+    m3 etr3 = {{
+        { 1.f, 2.f, 2.f },
+        { 3.f, 4.f, 4.f },
+        { 5.f, 6.f, 6.f }
+    }};
+    for_loop_r(3)
+        for_loop_c(3)
+            assert(rtr3.M[r][c] == etr3.M[r][c]);
+    printf("     -> OK!\n");
+
+    printf(" - test m4\n");
+    m4 mtr4 = {{
+        { 1.f, 3.f, 4.f, 7.f },
+        { 2.f, 6.f, 9.f, 8.f },
+        { 5.f, 4.f, 9.f, 1.f },
+        { 2.f, 5.f, 2.f, 1.f }
+    }};
+    m4 rtr4 = m4_transpose(mtr4);
+    m4 etr4 = {{
+        { 1.f, 2.f, 5.f, 2.f },
+        { 3.f, 6.f, 4.f, 5.f },
+        { 4.f, 9.f, 9.f, 2.f },
+        { 7.f, 8.f, 1.f, 1.f }
+    }};
+    for_loop_r(4)
+        for_loop_c(4)
+            assert(rtr4.M[r][c] == etr4.M[r][c]);
+    printf("     -> OK!\n");
+
+    printf("\n+ test m*_llt +\n");
+    printf(" - test m2 simmetric\n");
+    m2 mllt2 = {{
+        { 31.f,  9.f },
+        {  9.f, 31.f }
+    }};
+    m2 rllt2 = m2_llt(mllt2);
+    m2 tllt2 = m2_mmul(rllt2, m2_transpose(rllt2));
+    for_loop_r(2)
+        for_loop_c(2)
+            assert(tllt2.M[r][c] == mllt2.M[r][c]); // A = L*transpose(L)
+    printf("     -> OK!\n");
+
+    printf(" - test m3 simmetric\n");
+    m3 mllt3 = {{
+        { 31.f,  9.f, 21.f },
+        {  9.f, 55.f, 11.f },
+        { 21.f, 11.f, 44.f }
+    }};
+    m3 rllt3 = m3_llt(mllt3);
+    m3 tllt3 = m3_mmul(rllt3, m3_transpose(rllt3));
+    for_loop_r(3)
+        for_loop_c(3)
+            assert(tllt3.M[r][c] == mllt3.M[r][c]); // A = L*transpose(L)
+    printf("     -> OK!\n");
+
+    printf(" - test m4 simmetric\n");
+    m4 mllt4 = {{
+        { 18.f, 22.f,  54.f,  42.f },
+        { 22.f, 70.f,  86.f,  62.f },
+        { 54.f, 86.f, 174.f, 134.f },
+        { 42.f, 62.f, 134.f, 106.f  }
+    }};
+    m4 rllt4 = m4_llt(mllt4);
+    m4 tllt4 = m4_mmul(rllt4, m4_transpose(rllt4));
+    for_loop_r(4)
+        for_loop_c(4)
+            assert(tllt4.M[r][c] - mllt4.M[r][c] < 0.0001); // A = L*transpose(L)
+    printf("     -> OK!\n");
+
+    printf("\n+ test m*s_inv +\n");
+
+    printf(" - test m2\n");
+    m2 tbis2 = {{
+        { 5.f, 3.f },
+        { 3.f, 5.f }
+    }};
+    m2 invs2 = m2s_inv(tbis2);
+    m2 exinvs2 = {{
+        {  0.3125f, -0.1875f },
+        { -0.1875f,  0.3125f }
+    }};
+    start_matrix_loop(2)
+        assert(invs2.M[r][c] == exinvs2.M[r][c]);
+    end_matrix_loop
+    m2 hopefully_eye2 = m2_mmul(tbis2, invs2);
+    m2 eye2_i = m2_eye();
+    start_matrix_loop(2)
+        assert(eye2_i.M[r][c] == hopefully_eye2.M[r][c]);
+    end_matrix_loop
+    printf("     -> OK!\n");
+
+    printf(" - test m3\n");
+    m3 tbis3 = {{
+        {  6.f,  15.f,  55.f },
+        { 15.f,  55.f, 225.f },
+        { 55.f, 225.f, 979.f }
+    }};
+    m3 invs3 = m3s_inv(tbis3);
+    m3 exinvs3 = {{
+        {  0.8214285f, -0.5892857f,  0.0892857f },
+        { -0.5892857f,  0.7267857f, -0.1339285f },
+        {  0.0892857f, -0.1339285f,  0.0267857f }
+    }};
+    start_matrix_loop(3)
+        assert(invs3.M[r][c] - exinvs3.M[r][c] < - 0.000001f);
+    end_matrix_loop
+    m3 hopefully_eye3 = m3_mmul(tbis3, invs3);
+    m3 eye3_i = m3_eye();
+    start_matrix_loop(3)
+        assert(eye3_i.M[r][c] == hopefully_eye3.M[r][c]);
+    end_matrix_loop
+    printf("     -> OK!\n");
+
+    printf(" - test m4\n");
+    m4 tbis4 = {{
+        { 18.f, 22.f,  54.f,  42.f },
+        { 22.f, 70.f,  86.f,  62.f },
+        { 54.f, 86.f, 174.f, 134.f },
+        { 42.f, 62.f, 134.f, 106.f }
+    }};
+    m4 invs4 = m4s_inv(tbis4);
+    m4 exinvs4 = {{
+        {  2.515625f,  0.484375f, -1.296874f,  0.359374f },
+        {  0.484375f,  0.140625f, -0.328125f,  0.140625f },
+        { -1.296874f, -0.328125f,  1.015625f, -0.578125f },
+        {  0.359374f,  0.140625f, -0.578125f,  0.515625f }
+    }};
+    start_matrix_loop(4)
+        assert(invs4.M[r][c] == exinvs4.M[r][c]);
+    end_matrix_loop
+    m4 hopefully_eye4 = m4_mmul(tbis4, invs4);
+    m4 eye4_i = m4_eye();
+    start_matrix_loop(4)
+        assert(eye4_i.M[r][c] == hopefully_eye4.M[r][c]);
+    end_matrix_loop
+    printf("     -> OK!\n");
+
+#if 0
+    printf("\n+ test m*_inv +\n");
+    printf(" - test m2\n");
+    printf(" - test m3\n");
+    printf(" - test m4\n");
+    m4 minv4 = {{
+        { 10.f, 210.f, 2.f, 9.f },
+        { 0.2f, 33.f, 12.f, 99.f },
+        { 2.1f, 99.f, 0.8f, 1.2f },
+        { 1.1f, 1.2f, 5.9f, 41.f }
+    }};
+    m4 ernv4 = {{}};
+    m4 rsnv4 = m4_inv(minv4);
+
+    start_matrix_loop(4)
+        assert(rsnv4.M[r][c] == ernv4.M[r][c]);
+    end_matrix_loop
+#endif
 
     printf("\n+ test v*_ssum +\n");
 

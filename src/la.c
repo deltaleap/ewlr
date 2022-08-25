@@ -1,11 +1,6 @@
-#include "la.h"
+#include <math.h>
 
-#define for_loop_c(start, end) for(int c = start; \
-                                 c < end;  \
-                                 ++c)
-#define for_loop_r(start, end) for(int r = start; \
-                                 r < end;  \
-                                 ++r)
+#include "la.h"
 
 void v2_copy(v2 *dest, v2 *src){
     /* copy values from dest vec (2d) to src vec (2d)
@@ -43,21 +38,46 @@ void m2_copy(m2 *dest, m2 *src){
 void m3_copy(m3 *dest, m3 *src){
     /* copy values from dest matrix (3x3) to src matrix (3x3)
     */
-   for_loop_c(0, 3)
-       for_loop_r(0, 3)
+   for_loop_c(3)
+       for_loop_r(3)
            dest->M[r][c] = src->M[r][c];
 }
 
 void m4_copy(m4 *dest, m4 *src){
     /* copy values from dest matrix (4x4) to src matrix (4x4)
     */
-   for (int c = 0; c < 4; ++c)
-   {
-      for (int r = 0; r < 4; ++r)
-      {
+   for_loop_c(4)
+       for_loop_r(4)
          dest->M[r][c] = src->M[r][c];
-      }
-   }
+
+}
+
+/* identity matrix */
+m2 m2_eye()
+{
+    m2 eye;
+    for_loop_r(2)
+        for_loop_c(2)
+            eye.M[r][c] = (r == c) ? 1.f : 0.f;
+    return(eye);
+}
+
+m3 m3_eye()
+{
+    m3 eye;
+    for_loop_r(3)
+        for_loop_c(3)
+            eye.M[r][c] = (r == c) ? 1.f : 0.f;
+    return(eye);
+}
+
+m4 m4_eye()
+{
+    m4 eye;
+    for_loop_r(4)
+        for_loop_c(4)
+            eye.M[r][c] = (r == c) ? 1.f : 0.f;
+    return(eye);
 }
 
 f32 v2_dot(v2 a, v2 b)
@@ -143,6 +163,243 @@ f32 m4_det(m4 mat)
 
     f32 det = mat.M[0][0] * m3_det(a) - mat.M[0][1] * m3_det(b) + mat.M[0][2] * m3_det(c) - mat.M[0][3] * m3_det(d);
     return(det);
+}
+
+/* transpose */
+m2 m2_transpose(m2 m)
+{
+    m2 res;
+    for_loop_r(2)
+        for_loop_c(2)
+            res.M[r][c] = m.M[c][r];
+    return(res);
+}
+
+m3 m3_transpose(m3 m)
+{
+    m3   res;
+    for_loop_r(3)
+        for_loop_c(3)
+            res.M[r][c] = m.M[c][r];
+    return(res);
+}
+
+m4 m4_transpose(m4 m)
+{
+    m4 res;
+    for_loop_r(4)
+        for_loop_c(4)
+            res.M[r][c] = m.M[c][r];
+    return(res);
+}
+
+/* cholesky decomposition */
+m2 m2_llt(m2 m)
+{
+    m2 L;
+    for_loop_r(2)
+    {
+        for_loop_c(2)
+        {
+            f32 sum = 0;
+            for (int k = 0; k < c; ++k)
+                sum += L.M[r][k] * L.M[c][k];
+
+            if (r == c)
+                L.M[r][c] = sqrt(m.M[r][r] - sum);
+            else
+            {
+                if (r > c)
+                    L.M[r][c] = (1.f / L.M[c][c] * (m.M[r][c] - sum));
+                else
+                    L.M[r][c] = 0;
+            }
+        }
+    }
+    return(L);
+}
+
+m3 m3_llt(m3 m)
+{
+    m3 L;
+    for_loop_r(3)
+    {
+        for_loop_c(3)
+        {
+            f32 sum = 0;
+            for (int k = 0; k < c; ++k)
+                sum += L.M[r][k] * L.M[c][k];
+
+            if (r == c)
+                L.M[r][c] = sqrt(m.M[r][r] - sum);
+            else
+            {
+                if (r > c)
+                    L.M[r][c] = (1.f / L.M[c][c] * (m.M[r][c] - sum));
+                else
+                    L.M[r][c] = 0;
+            }
+        }
+    }
+    return(L);
+}
+
+m4 m4_llt(m4 m)
+{
+    m4 L;
+    for_loop_r(4)
+    {
+        for_loop_c(4)
+        {
+            f32 sum = 0;
+            for (int k = 0; k < c; ++k)
+                sum += L.M[r][k] * L.M[c][k];
+
+            if (r == c)
+                L.M[r][c] = sqrt(m.M[r][r] - sum);
+            else
+            {
+                if (r > c)
+                    L.M[r][c] = (1.f / L.M[c][c] * (m.M[r][c] - sum));
+                else
+                    L.M[r][c] = 0;
+            }
+        }
+    }
+    return(L);
+}
+
+/* inverse of symmetric matrix */
+m2 m2s_inv(m2 m)
+{
+    /* Inverse of A:
+        - A is simmetric, semipositive definite
+        - A A⁻¹ = I
+        - A = LLᵀ
+        - A⁻¹ = (LLᵀ)⁻¹ = L⁻ᵀL⁻¹
+        - LLᵀA⁻¹ = I -> Lu = I, where u = LᵀA⁻¹
+        - resolve Lu = I through forward substitution
+        - resolve LᵀA⁻¹ = u through back substitution
+    */
+    /* cholesky decomposition -> L */
+    m2 L = m2_llt(m);
+    /* hard-coded forward substitution */
+    m2 u;
+    u.M[0][0] = 1.f / L.M[0][0];
+    u.M[1][1] = 1.f / L.M[1][1];
+    u.M[1][0] = - L.M[1][0] / ( L.M[0][0] * L.M[1][1] );
+    /* hard-coded backward substitution */
+    m2 res;
+    res.M[1][0] = u.M[1][0] / L.M[1][1];
+    res.M[1][1] = u.M[1][1] / L.M[1][1];
+    /* not useful
+    res.M[0][0] = ( u.M[0][0] - u.M[1][0] * L.M[1][0] / L.M[1][1] ) / L.M[0][0];
+    res.M[0][1] = - ( u.M[1][1] * L.M[1][0] ) / ( L.M[0][0] * L.M[1][1] );
+    */
+    res.M[0][1] = res.M[1][0];
+    res.M[0][0] = res.M[1][1];
+
+    return(res);
+}
+
+
+m3 m3s_inv(m3 m)
+{
+    /* Inverse of A:
+        - A is simmetric, semipositive definite
+        - A A⁻¹ = I
+        - A = LLᵀ
+        - A⁻¹ = (LLᵀ)⁻¹ = L⁻ᵀL⁻¹
+        - LLᵀA⁻¹ = I -> Lu = I, where u = LᵀA⁻¹
+        - resolve Lu = I through forward substitution
+        - resolve LᵀA⁻¹ = u through back substitution
+    */
+    m3 L = m3_llt(m);
+    f32 u00, u10, u20, u11, u21, u22;
+    u00 = 1.f / L.M[0][0];
+    u11 = 1.f / L.M[1][1];
+    u22 = 1.f / L.M[2][2];
+    u10 = - u00 * L.M[1][0] / L.M[1][1];
+    u21 = - u11 * L.M[2][1] / L.M[2][2];
+    u20 = - (u00 * L.M[2][0] + u10 * L.M[2][1]) / L.M[2][2];
+
+    f32 a00, a10, a20, a11, a21, a22;
+    a20 = u20 / L.M[2][2];
+    a21 = u21 / L.M[2][2];
+    a22 = u22 / L.M[2][2];
+    a11 = (u11 - a21 * L.M[2][1]) / L.M[1][1];
+    a10 = (u10 - a20 * L.M[2][1]) / L.M[1][1];
+    a00 = (u00 - a10 * L.M[1][0] - a20 * L.M[2][0]) / L.M[0][0];
+
+    m3 res;
+    res.M[0][0] = a00;
+    res.M[1][0] = a10;
+    res.M[2][0] = a20;
+    res.M[1][1] = a11;
+    res.M[2][1] = a21;
+    res.M[2][2] = a22;
+    res.M[0][1] = a10;
+    res.M[0][2] = a20;
+    res.M[1][2] = a21;
+
+    return(res);
+}
+
+m4 m4s_inv(m4 m)
+{
+    /* Inverse of A:
+        - A is simmetric, semipositive definite
+        - A A⁻¹ = I
+        - A = LLᵀ
+        - A⁻¹ = (LLᵀ)⁻¹ = L⁻ᵀL⁻¹
+        - LLᵀA⁻¹ = I -> Lu = I, where u = LᵀA⁻¹
+        - resolve Lu = I through forward substitution
+        - resolve LᵀA⁻¹ = u through back substitution
+    */
+    m4 L = m4_llt(m);
+    f32 u00, u10, u11, u20, u21, u22, u30, u31, u32, u33;
+    f32 a00, a10, a11, a20, a21, a22, a30, a31, a32, a33;
+    u00 = 1.f / L.M[0][0];
+    u11 = 1.f / L.M[1][1];
+    u22 = 1.f / L.M[2][2];
+    u33 = 1.f / L.M[3][3];
+    u32 = - u22 * L.M[3][2] / L.M[3][3];
+    u21 = - u11 * L.M[2][1] / L.M[2][2];
+    u10 = - u00 * L.M[1][0] / L.M[1][1];
+    u20 = - (u00 * L.M[2][0] + u10 * L.M[2][1]) / L.M[2][2];
+    u31 = - (u11 * L.M[3][1] + u21 * L.M[3][2]) / L.M[3][3];
+    u30 = - (u00 * L.M[3][0] + u10 * L.M[3][1] + u20 * L.M[3][2]) / L.M[3][3];
+    a30 = u30 / L.M[3][3];
+    a33 = u33 / L.M[3][3];
+    a32 = u32 / L.M[3][3];
+    a31 = u31 / L.M[3][3];
+    a22 = ( u22 - L.M[3][2] * a32 ) / L.M[2][2];
+    a21 = ( u21 - L.M[3][2] * a31 ) / L.M[2][2];
+    a20 = ( u20 - L.M[3][2] * a30 ) / L.M[2][2];
+    a11 = ( u11 - L.M[2][1] * a21 - L.M[3][1] * a31 ) / L.M[1][1];
+    a10 = ( u10 - L.M[2][1] * a20 - L.M[3][1] * a30 ) / L.M[1][1];
+    a00 = ( u00 - L.M[1][0] * a10 - L.M[2][0] * a20 - L.M[3][0] * a30 ) / L.M[0][0];
+
+    m4 res;
+    res.M[0][0] = a00;
+    res.M[1][0] = a10;
+    res.M[2][0] = a20;
+    res.M[3][0] = a30;
+    res.M[1][1] = a11;
+    res.M[2][1] = a21;
+    res.M[3][1] = a31;
+    res.M[2][2] = a22;
+    res.M[3][2] = a32;
+    res.M[3][3] = a33;
+
+    res.M[0][1] = a10;
+    res.M[0][2] = a20;
+    res.M[0][3] = a30;
+    res.M[1][2] = a21;
+    res.M[1][3] = a31;
+    res.M[2][3] = a32;
+
+    return(res);
 }
 
 
