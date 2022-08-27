@@ -52,6 +52,62 @@ void m4_copy(m4 *dest, m4 *src){
 
 }
 
+/* zero-vectors */
+v2 v2_zero()
+{
+    /* TODO: test */
+    v2 zero;
+    zero.x = 0.f;
+    zero.y = 0.f;
+    return(zero);
+}
+
+v3 v3_zero()
+{
+    /* TODO: test */
+    v3 zero;
+    zero.x = 0.f;
+    zero.y = 0.f;
+    zero.z = 0.f;
+    return(zero);
+}
+
+v4 v4_zero()
+{
+    /* TODO: test */
+    v4 zero;
+    zero.w = 0.f;
+    zero.x = 0.f;
+    zero.y = 0.f;
+    zero.z = 0.f;
+    return(zero);
+}
+
+/* zero-vectors: pointer version */
+void v2_zero_(v2 *dest)
+{
+    /* TODO: test */
+    dest->x = 0.f;
+    dest->y = 0.f;
+}
+
+void v3_zero_(v3 *dest)
+{
+    /* TODO: test */
+    dest->x = 0.f;
+    dest->y = 0.f;
+    dest->z = 0.f;
+}
+
+void v4_zero_(v4 *dest)
+{
+    /* TODO: test */
+    dest->w = 0.f;
+    dest->x = 0.f;
+    dest->y = 0.f;
+    dest->z = 0.f;
+}
+
 /* identity matrix */
 m2 m2_eye()
 {
@@ -78,6 +134,31 @@ m4 m4_eye()
         for_loop_c(4)
             eye.M[r][c] = (r == c) ? 1.f : 0.f;
     return(eye);
+}
+
+/* identity matrix - pointer version */
+void m2_eye_(m2 *dest)
+{
+    /* TODO: test */
+    for_loop_r(2)
+        for_loop_c(2)
+            dest->M[r][c] = (r == c) ? 1.f : 0.f;
+}
+
+void m3_eye_(m3 *dest)
+{
+    /* TODO: test */
+    for_loop_r(3)
+        for_loop_c(3)
+            dest->M[r][c] = (r == c) ? 1.f : 0.f;
+}
+
+void m4_eye_(m4 *dest)
+{
+    /* TODO: test */
+    for_loop_r(4)
+        for_loop_c(4)
+            dest->M[r][c] = (r == c) ? 1.f : 0.f;
 }
 
 f32 v2_dot(v2 a, v2 b)
@@ -557,6 +638,61 @@ v4 v4_msum(v4 a, v4 b)
    return(res);
 }
 
+/* matrix substraction */
+v2 v2_msub(v2 a, v2 b)
+{
+    v2 res;
+    res.x = a.x - b.x;
+    res.y = a.y - b.y;
+    return(res);
+}
+
+v3 v3_msub(v3 a, v3 b)
+{
+    v3 res;
+    res.x = a.x - b.x;
+    res.y = a.y - b.y;
+    res.z = a.z - b.z;
+    return(res);
+}
+
+v4 v4_msub(v4 a, v4 b)
+{
+    v4 res;
+    res.w = a.w - b.w;
+    res.x = a.x - b.x;
+    res.y = a.y - b.y;
+    res.z = a.z - b.z;
+    return(res);
+}
+
+m2 m2_msub(m2 a, m2 b)
+{
+    m2 res;
+    start_matrix_loop(2)
+        res.M[r][c] = a.M[r][c] - b.M[r][c];
+    end_matrix_loop
+    return(res);
+}
+
+m3 m3_msub(m3 a, m3 b)
+{
+    m3 res;
+    start_matrix_loop(3)
+        res.M[r][c] = a.M[r][c] - b.M[r][c];
+    end_matrix_loop
+    return(res);
+}
+
+m4 m4_msub(m4 a, m4 b)
+{
+    m4 res;
+    start_matrix_loop(4)
+        res.M[r][c] = a.M[r][c] - b.M[r][c];
+    end_matrix_loop
+    return(res);
+}
+
 /* scalar multiplication */
 m2 m2_smul(f32 a, m2 m)
 {
@@ -630,6 +766,60 @@ v4 v4_smul(f32 a, v4 v)
     res.x = a * v.x;
     res.y = a * v.y;
     res.z = a * v.z;
+    return(res);
+}
+
+/* scalar division */
+v2 v2_sdiv(f32 a, v2 v)
+{
+    v2 res;
+    res.x = v.x / a;
+    res.y = v.y / a;
+    return(res);
+}
+
+v3 v3_sdiv(f32 a, v3 v)
+{
+    v3 res;
+    res.x = v.x / a;
+    res.y = v.y / a;
+    res.z = v.z / a;
+    return(res);
+}
+
+v4 v4_sdiv(f32 a, v4 v)
+{
+    v4 res;
+    res.w = v.w / a;
+    res.x = v.x / a;
+    res.y = v.y / a;
+    res.z = v.z / a;
+    return(res);
+}
+
+m2 m2_sdiv(f32 a, m2 m)
+{
+    m2 res;
+    start_matrix_loop(2)
+        res.M[r][c] = m.M[r][c] / a;
+    end_matrix_loop
+    return(res);
+}
+
+m3 m3_sdiv(f32 a, m3 m)
+{
+    m3 res;
+    start_matrix_loop(3)
+        res.M[r][c] = m.M[r][c] / a;
+    end_matrix_loop
+    return(res);
+}
+m4 m4_sdiv(f32 a, m4 m)
+{
+    m4 res;
+    start_matrix_loop(4)
+        res.M[r][c] = (m.M[r][c] / a);
+    end_matrix_loop
     return(res);
 }
 

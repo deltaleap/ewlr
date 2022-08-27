@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+
 #include "la.h"
+#include "afrewrls.h"
+#include "fls.h"
+
+#define EPSILON 0.0001
 
 void test_la()
 {
@@ -287,7 +292,7 @@ void test_la()
     m4 tllt4 = m4_mmul(rllt4, m4_transpose(rllt4));
     for_loop_r(4)
         for_loop_c(4)
-            assert(tllt4.M[r][c] - mllt4.M[r][c] < 0.0001); // A = L*transpose(L)
+            assert(fabs(tllt4.M[r][c] - mllt4.M[r][c]) < EPSILON); // A = L*transpose(L)
     printf("     -> OK!\n");
 
     printf("\n+ test m*s_inv +\n");
@@ -303,12 +308,14 @@ void test_la()
         { -0.1875f,  0.3125f }
     }};
     start_matrix_loop(2)
-        assert(invs2.M[r][c] == exinvs2.M[r][c]);
+    {
+        assert(fabs(invs2.M[r][c] - exinvs2.M[r][c]) < EPSILON);
+    }
     end_matrix_loop
     m2 hopefully_eye2 = m2_mmul(tbis2, invs2);
     m2 eye2_i = m2_eye();
     start_matrix_loop(2)
-        assert(eye2_i.M[r][c] == hopefully_eye2.M[r][c]);
+        assert(fabs(eye2_i.M[r][c] - hopefully_eye2.M[r][c]) < EPSILON);
     end_matrix_loop
     printf("     -> OK!\n");
 
@@ -325,12 +332,12 @@ void test_la()
         {  0.0892857f, -0.1339285f,  0.0267857f }
     }};
     start_matrix_loop(3)
-        assert(invs3.M[r][c] - exinvs3.M[r][c] < - 0.000001f);
+        assert(fabs(invs3.M[r][c] - exinvs3.M[r][c]) < EPSILON);
     end_matrix_loop
     m3 hopefully_eye3 = m3_mmul(tbis3, invs3);
     m3 eye3_i = m3_eye();
     start_matrix_loop(3)
-        assert(eye3_i.M[r][c] == hopefully_eye3.M[r][c]);
+        assert(fabs(eye3_i.M[r][c] - hopefully_eye3.M[r][c]) < EPSILON);
     end_matrix_loop
     printf("     -> OK!\n");
 
@@ -349,12 +356,15 @@ void test_la()
         {  0.359374f,  0.140625f, -0.578125f,  0.515625f }
     }};
     start_matrix_loop(4)
-        assert(invs4.M[r][c] == exinvs4.M[r][c]);
+        assert(fabs(invs4.M[r][c] - exinvs4.M[r][c]) < EPSILON);
     end_matrix_loop
     m4 hopefully_eye4 = m4_mmul(tbis4, invs4);
     m4 eye4_i = m4_eye();
     start_matrix_loop(4)
-        assert(eye4_i.M[r][c] == hopefully_eye4.M[r][c]);
+    {
+        printf("R[%d][%d] -> %f == %f\n", r, c, eye4_i.M[r][c], hopefully_eye4.M[r][c]);
+        assert(fabs(eye4_i.M[r][c] - hopefully_eye4.M[r][c]) < EPSILON);
+    }
     end_matrix_loop
     printf("     -> OK!\n");
 
@@ -848,7 +858,58 @@ void test_la()
     printf("     -> OK!\n");
 }
 
+void test_afrewrls()
+{
+    afewrls ls;
+    f32 alpha = 0.95;
+    f32 lambda_minus = 0.7f;
+    f32 lambda_plus = 1.f;
+    afewrls_init(&ls, alpha, lambda_minus, lambda_plus);
+    print_afewrls(&ls);
+
+    v4 x1 = { 10.f, 12.f, 14.f, 3.f };
+
+    afewrls_update(&ls, x1, 12.f);
+    print_afewrls(&ls);
+
+    v4 x2 = { 10.1f, 11.8f, 9.f, 3.5f };
+    afewrls_update(&ls, x2, 12.f);
+    print_afewrls(&ls);
+    afewrls_update(&ls, x2, 11.f);
+    print_afewrls(&ls);
+
+    v4 x_ = {1.f, 1.f, 1.f, 1.f};
+    afewrls_predict(&ls, x_);
+#define I 100
+    for (int i = 0; i < I; ++i)
+    {
+        afewrls_update(&ls, x_, 11.f);
+    }
+    f32 res = afewrls_predict(&ls, x_);
+    printf("res: %.5f\n", res);
+
+}
+
+void test_fls()
+{
+    printf("\n\ntesting fls:\n");
+    fls ls;
+    f32 factor = 0.95f;
+    fls_init(&ls, factor);
+
+    v4 x1 = { 10.f, 12.f, 14.f, 3.f };
+    for (int i = 0; i < 50; ++i)
+    {
+        printf("i: %d\n", i);
+        fls_update(&ls, x1, 12.0f);
+    }
+
+    print4(ls.beta);
+}
+
 int main()
 {
     test_la();
+    // test_afrewrls();
+    test_fls();
 }
