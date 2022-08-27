@@ -1,17 +1,24 @@
+#ifndef LA_H
+#define LA_H
+
 #include <stdint.h>
 #include <xmmintrin.h>
 
-#define print2x2(M) printf("[[%f, %f]\n",M[0][0],M[0][1]); \
-                    printf(" [%f, %f]]\n",M[1][0],M[1][1]);
+#define print2(V) printf("[ %.4f, %.4f ]\n", V.x, V.y);
+#define print3(V) printf("[ %.4f, %.4f, %.4f ]\n", V.x, V.y, V.z);
+#define print4(V) printf("[ %.4f, %.4f, %.4f, %.4f ]\n", V.w, V.x, V.y, V.z);
 
-#define print3x3(M) printf("[[%f, %f, %f]\n",M[0][0],M[0][1],M[0][2]); \
-                    printf(" [%f, %f, %f]\n",M[1][0],M[1][1],M[1][2]); \
-                    printf(" [%f, %f, %f]]\n",M[2][0],M[2][1],M[2][2]);
+#define print2x2(M) printf("[[%.5f, %.5f]\n",M[0][0],M[0][1]); \
+                    printf(" [%.5f, %.5f]]\n",M[1][0],M[1][1]);
 
-#define print4x4(M) printf("[[%f, %f, %f, %f]\n", M[0][0],M[0][1],M[0][2],M[0][3]); \
-                    printf(" [%f, %f, %f, %f]\n", M[1][0],M[1][1],M[1][2],M[1][3]); \
-                    printf(" [%f, %f, %f, %f]\n", M[2][0],M[2][1],M[2][2],M[2][3]); \
-                    printf(" [%f, %f, %f, %f]]\n",M[3][0],M[3][1],M[3][2],M[3][3]);
+#define print3x3(M) printf("[[%.5f, %.5f, %.5f]\n",M[0][0],M[0][1],M[0][2]); \
+                    printf(" [%.5f, %.5f, %.5f]\n",M[1][0],M[1][1],M[1][2]); \
+                    printf(" [%.5f, %.5f, %.5f]]\n",M[2][0],M[2][1],M[2][2]);
+
+#define print4x4(M) printf("[[%.5f, %.5f, %.5f, %.5f]\n", M[0][0],M[0][1],M[0][2],M[0][3]); \
+                    printf(" [%.5f, %.5f, %.5f, %.5f]\n", M[1][0],M[1][1],M[1][2],M[1][3]); \
+                    printf(" [%.5f, %.5f, %.5f, %.5f]\n", M[2][0],M[2][1],M[2][2],M[2][3]); \
+                    printf(" [%.5f, %.5f, %.5f, %.5f]]\n",M[3][0],M[3][1],M[3][2],M[3][3]);
 
 #define for_loop_c(end) for(int c = 0; \
                                  c < end;  \
@@ -20,9 +27,9 @@
                                  r < end;  \
                                  ++r)
 
-#define start_matrix_loop(n) for(int c; c < n; ++c) \
+#define start_matrix_loop(n) for(int r = 0; r < n; ++r) \
                              { \
-                                for(int r; r < n; ++r) \
+                                for(int c = 0; c < n; ++c) \
                                 {
 #define end_matrix_loop }};
 
@@ -56,10 +63,25 @@ void m2_copy(m2 *dest, m2 *src);
 void m3_copy(m3 *dest, m3 *src);
 void m4_copy(m4 *dest, m4 *src);
 
+/* zero-vectors */
+v2 v2_zero();
+v3 v3_zero();
+v4 v4_zero();
+
+/* zero-vectors: pointer version */
+void v2_zero_(v2 *dest);
+void v3_zero_(v3 *dest);
+void v4_zero_(v4 *dest);
+
 /* identity matrix */
 m2 m2_eye();
 m3 m3_eye();
 m4 m4_eye();
+
+/* identity matrix */
+void m2_eye_(m2 *dest);
+void m3_eye_(m3 *dest);
+void m4_eye_(m4 *dest);
 
 /* dot product */
 f32 v2_dot(v2 a, v2 b);
@@ -117,6 +139,14 @@ v3 v3_msum(v3 a, v3 b);
 m4 m4_msum(m4 a, m4 b);
 v4 v4_msum(v4 a, v4 b);
 
+/* matrix substraction */
+m2 m2_msub(m2 a, m2 b);
+v2 v2_msub(v2 a, v2 b);
+m3 m3_msub(m3 a, m3 b);
+v3 v3_msub(v3 a, v3 b);
+m4 m4_msub(m4 a, m4 b);
+v4 v4_msub(v4 a, v4 b);
+
 /* scalar multiplication */
 m2 m2_smul(f32 a, m2 m);
 v2 v2_smul(f32 a, v2 v);
@@ -124,6 +154,14 @@ m3 m3_smul(f32 a, m3 m);
 v3 v3_smul(f32 a, v3 v);
 m4 m4_smul(f32 a, m4 m);
 v4 v4_smul(f32 a, v4 v);
+
+/* scalar division */
+m2 m2_sdiv(f32 a, m2 m);
+v2 v2_sdiv(f32 a, v2 v);
+m3 m3_sdiv(f32 a, m3 m);
+v3 v3_sdiv(f32 a, v3 v);
+m4 m4_sdiv(f32 a, m4 m);
+v4 v4_sdiv(f32 a, v4 v);
 
 /* matrix multiplication */
 m2 m2_mmul(m2 a, m2 b);   // 2x2, 2x2 -> 2x2 
@@ -140,3 +178,5 @@ m4 m4_mmul(m4 a, m4 b);   // 4x4, 4x4 -> 4x4
 m4 v4_mmul(v4 a, v4 b);   // 4x1, 1x4 -> 4x4
 v4 m4v4_mmul(m4 a, v4 b); // 4x4, 4x1 -> 4x1
 v4 v4m4_mmul(v4 a, m4 b); // 1x4, 4x4 -> 1x4
+
+#endif // LA_H
